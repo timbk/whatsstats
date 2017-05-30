@@ -9,31 +9,6 @@ from glob import glob
 font = {'size'   : 20}
 matplotlib.rc('font',**font)
 
-WORD_BLACKLIST=[
-                "ja",'nein',
-                "ich","du","er","sie","es","wir","ihr","sie",
-                "mir","dir","ihn","uns","euch",
-                "sich","dich","mich","euch","ihn","euch",
-                "der","die","das","den","dem","dass","dieses","deine",
-                "mein","dein","sein","ihr","unser","euer","deren","meine",
-                "und","oder","also","aber","wenn","so","auch","ob",
-                "wer","wie","was","wo","warum","wann","wieso","wesshalb","welche",
-                "in","aus","um","bei","im","auf","an","nach","mit","zu","am","von","vor","zum","hier","unter","beim","zur","vom",
-                "dabei","als","ab",
-                "dann","da","wenn","denn","doch","als","immer",
-                "bin","hast","hab","hat","habe","weiss","haben","seid","gibt","werden","sollten",
-                "ist","war","wird","sind","kann","soll","wollte","bist","machen","will","geht","kannst","gemacht","macht","meint",
-                "mach","sollte","muss","glaub","musst","glaube","kommt","sieht","denk",
-                "sagen","kommen","getroffen","gesagt","guck","stimmt","komme",
-                "mal","noch","schon","bis","jetzt","wieder","einer",
-                "sehr","nur","ein","ne","eine","einen","mehr","viele","viel","alle","jeder","keinen","kein",
-                "alles","keine",
-                "achso","eigentlich",
-                "wegen","weil","halt","wohl",
-                "jemand","man","mann",
-                "0","1","2","3","4","5","6","7","8","9",
-                "über","für","wäre","während","können","fürs","müssen","würde","könnte", # UMLAUTE!!
-                ]
 DCOLORS=['b','g','r','c','m','y','0.5','#1B7677','w','#8B0000']
 
 def do_histplot(DATA,USERS,TITLE,FNAME,FSIZE=(14,10),YLABEL="Häufigkeit",KEYGEN=lambda x:x,
@@ -191,6 +166,10 @@ def gen_anteile(fid,data,users):
 # check sysargs
 if len(sys.argv)<2:
     print('usage:\n whatstat file.txt [file2.txt ..]')
+
+with open('words_blacklist.txt') as f:
+    WORD_BLACKLIST=[l.replace('\n','') for l in f]
+print('%i filtered words loaded'%(len(WORD_BLACKLIST)))
 
 # main loop
 for fstring in sys.argv[1:]:
