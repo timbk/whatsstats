@@ -6,11 +6,23 @@ import sys,time
 from collections import Counter
 from glob import glob
 
+# set a sane default font for matplotlib
 font = {'size'   : 20}
 matplotlib.rc('font',**font)
 
+# color map
 DCOLORS=['b','g','r','c','m','y','0.5','#1B7677','w','#8B0000']
 
+# create a bar plot with string keys and splitted bars
+# DATA      - list containing keys and their corresponding values [[key,N1,2,..]..]
+# USERS     - labels for the splitted parts of the bar
+# TITLE     - title for the plot
+# FNAME     - path to where the image will to be saved
+# FSIZE     - (optional) figure size as tuple
+# YLABEL    - (optional) label for the x (oops..) axis
+# KEYGEN    - (optional) function that generates strings from the keys in data
+# LOFFSET   - (optional) offset for the keys as yticks
+# GROUPING  - (optional) settings to group USERS (min#,#ungrouped,criteria)
 def do_histplot(DATA,USERS,TITLE,FNAME,FSIZE=(14,10),YLABEL="Häufigkeit",KEYGEN=lambda x:x,
         LOFFSET=0.,GROUPING=None):
     assert len(DATA[0])-1==len(USERS)
@@ -40,7 +52,6 @@ def do_histplot(DATA,USERS,TITLE,FNAME,FSIZE=(14,10),YLABEL="Häufigkeit",KEYGEN
     fig.tight_layout()
     plt.savefig(FNAME)
     plt.close(fig)
-    return None
 
 # reorder data for better readability in pie chart
 # DATA    - Data
@@ -92,6 +103,10 @@ def do_pieplot(DATA,LABELS,TITLE,FNAME,FSIZE=(10,10),grouping=(15,13)):
     plt.close(fig)
     return None
 
+# parse the given line from a whatsapp chat log
+# l         - the line of text as string
+# returns   - [timestamp,username,[words]] or ['app',[words]]
+#               if returnval[0]=='app' the wordlist is ment to be appendet to the previous
 def parse_line(l):
     ret=[]
     l=l.split('-')
@@ -118,6 +133,9 @@ def parse_line(l):
     ret.append(list(filter(lambda x: len(x)>0, (':'.join(l[1:])).split(' '))))
     return ret
 
+# append the loose word lists
+# lines     - reversed list of parsed lines
+# returns   - cleaned up list
 def concat(lines):
     tmp=[]
     cchain=[]
@@ -129,6 +147,7 @@ def concat(lines):
             cchain=[]
     return tmp
 
+# a try to smartly remove dots from the end of a line
 def rmdot(s):
     if len(s)<2:
         return s
@@ -136,6 +155,10 @@ def rmdot(s):
         return s[:-1]
     return s
 
+# generates the word histogramms
+# fid       - target file name id
+# data      - the list with the messages
+# users     - the list with the users
 def gen_wordhist(fid,data,users):
     hists=[Counter([rmdot(i.lower()) for sub in filter(lambda x: x[1]==u,data) for i in sub[2] if (len(i)>0 and i!='.')]) for u in users]
     group_crit=[sum([h[1] for i in h]) for h in hists]
@@ -145,12 +168,14 @@ def gen_wordhist(fid,data,users):
             ud[word]=0
     gen_wordhist_sub(fid+'_wh_filtered',hists,users)
 
+# subroutine that does the actual plotting
 def gen_wordhist_sub(fid,data,users,nword=25):
     fhist=sum(data,Counter()).most_common(nword)
     group_crit=[sum([h[i] for i in h]) for h in data]
     histdat=[[word]+[data[u][word] for u in range(len(users))] for word in map(lambda x:x[0], fhist)]
     do_histplot(histdat,users,fid,fid+'.png',GROUPING=(10,8,group_crit))
 
+# generate a pie graph of who send how many characters/words/messages
 def gen_anteile(fid,data,users):
     umsg={u:list(filter(lambda x:x[1]==u,data)) for u in users}
     msgcount=[len(list(umsg[u])) for u in users]
